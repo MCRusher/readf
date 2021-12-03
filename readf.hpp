@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 enum {
-    READF_STR_BUFSIZE = 1
+    READF_STR_BUFSIZE = 200
 };
 
 char * readf_str(char const * msg) {
