@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,45 +25,41 @@ char * readf_str(char const * msg) {
         fputs(msg, stdout);
         fflush(stdout);
     }
-    int len = 0;
+    int pos = 0;
     int buf_size = READF_STR_BUFSIZE;
-    char * buf = malloc(READF_STR_BUFSIZE+1);
-    if(!buf)
-            return NULL;
-    while(true){
-        const int unused = buf_size - len;
-        int read = fread(buf + len, 1, unused, stdin);
-        len += read;
-        if(read == unused){
+    char * buf = malloc(READF_STR_BUFSIZE);
+    if(buf == NULL) return NULL;
+    int c;
+	while(1){
+        //grow buffer
+        if(pos == buf_size){
             buf_size *= 2;
-            char * tmp = realloc(buf, buf_size+1);
-            if(!tmp){
-                free(buf);
-                return NULL;
-            }
+            char * tmp = realloc(buf, buf_size);
+            if(tmp == NULL) goto error;
             buf = tmp;
+        }
+		c = fgetc(stdin);
+		if(c == '\n'){//end of line/input
+            buf[pos++] = '\0';
+			break;
+        }else if(c == EOF){//either an error or end of input
+            if(!ferror(stdin)){//not an error
+                buf[pos++] = '\0';
+                break;
+            }else goto error;
         }else{
-            if(ferror(stdin)){
-                free(buf);
-                return NULL;
-            }
-            assert(feof(stdin));
-            break;
+            buf[pos++] = c;
         }
     }
-    //shrink buffer to used portion + 1 for \0
-    const bool has_newline = len > 0 && buf[len-1] == '\n';
-    printf("[len: %d]\n", len);
-    printf("[alloc len: %d]\n", len + 1 - has_newline);
-    //don't need space for null byte if there is a newline to replace
-    char * tmp = realloc(buf, len + 1 - has_newline);
-    if(!tmp){
-        free(buf);
-        return NULL;
-    }
+    //shrink buf to used size
+    char * tmp = realloc(buf, pos);
+    if(tmp == NULL) goto error;
     buf = tmp;
-    buf[len - has_newline] = '\0';
+    
     return buf;
+error:
+    free(buf);
+    return NULL;
 }
 
 char readf_char(char const * msg) {
@@ -188,3 +186,4 @@ extern "C++" {
 #undef malloc
 #undef realloc
 #endif
+
