@@ -30,7 +30,7 @@ char * readf_str(char const * msg) {
     char * buf = malloc(READF_STR_BUFSIZE);
     if(buf == NULL) return NULL;
     int c;
-	while(1){
+    while(1){
         //grow buffer
         if(pos == buf_size){
             buf_size *= 2;
@@ -38,10 +38,10 @@ char * readf_str(char const * msg) {
             if(tmp == NULL) goto error;
             buf = tmp;
         }
-		c = fgetc(stdin);
-		if(c == '\n'){//end of line/input
+        c = fgetc(stdin);
+        if(c == '\n'){//end of line/input
             buf[pos++] = '\0';
-			break;
+            break;
         }else if(c == EOF){//either an error or end of input
             if(!ferror(stdin)){//not an error
                 buf[pos++] = '\0';
